@@ -1,3 +1,6 @@
 .idea/
 *.iml
 target/
+files/
+request.http
+variables_local.env

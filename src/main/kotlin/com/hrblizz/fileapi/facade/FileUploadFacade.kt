@@ -2,9 +2,11 @@ package com.hrblizz.fileapi.facade
 
 import com.hrblizz.fileapi.data.entities.FileEntity
 import com.hrblizz.fileapi.data.repository.FileRepository
+import com.hrblizz.fileapi.facade.dto.FileDataDTO
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.*
@@ -26,7 +28,14 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
     }
 
     fun findAllByIds(ids: List<String>): List<FileEntity> {
-        return fileRepository.findAllById(ids).toList()
+        return fileRepository.findAllById(ids).filter { !it.isExpired() }
+    }
+
+    fun getFileData(token: String): FileDataDTO {
+        val fileMeta = findAllByIds(listOf(token))
+        val fileData = File(uploadBaseDir + fileMeta.firstOrNull()?.filePath)
+        require(fileMeta.isNotEmpty() && fileData.exists()) { "File with token not found" }
+        return FileDataDTO(fileMeta.first(), FileInputStream(fileData))
     }
 
     private fun storeFile(fileInputStream: InputStream, filename: String) : String {

@@ -21,6 +21,9 @@ data class FileUploadRequest(val name: String?,
         if (contentType.isNullOrBlank()) {
             throw BadRequestException("Content type is blank")
         }
+        if (source.isNullOrBlank()) {
+            throw BadRequestException("Source is blank")
+        }
 
         if (meta.isNullOrBlank() || metaToMap() == null) {
             throw BadRequestException("Meta is blank")

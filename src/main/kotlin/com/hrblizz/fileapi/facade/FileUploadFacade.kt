@@ -25,6 +25,10 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
         return entity
     }
 
+    fun findAllByIds(ids: List<String>): List<FileEntity> {
+        return fileRepository.findAllById(ids).toList()
+    }
+
     private fun storeFile(fileInputStream: InputStream, filename: String) : String {
         val fileName = filename.replace("-", "");
 

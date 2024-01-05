@@ -3,6 +3,9 @@ package com.hrblizz.fileapi.facade
 import com.hrblizz.fileapi.data.entities.FileEntity
 import com.hrblizz.fileapi.data.repository.FileRepository
 import com.hrblizz.fileapi.facade.dto.FileDataDTO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
@@ -36,6 +39,23 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
         val fileData = File(uploadBaseDir + fileMeta.firstOrNull()?.filePath)
         require(fileMeta.isNotEmpty() && fileData.exists()) { "File with token not found" }
         return FileDataDTO(fileMeta.first(), FileInputStream(fileData))
+    }
+
+    fun deleteFile(token: String) {
+        val fileMeta = findAllByIds(listOf(token))
+        if (fileMeta.isNotEmpty()) {
+            fileRepository.deleteById(fileMeta.first().token)
+            runBlocking {
+                launch(Dispatchers.IO) {
+                    val file = File(uploadBaseDir + fileMeta.first().filePath)
+                    println("deleting the file")
+                    if (file.exists()) {
+                        file.delete()
+                        println("deleted the file")
+                    }
+                }
+            }
+        }
     }
 
     private fun storeFile(fileInputStream: InputStream, filename: String) : String {

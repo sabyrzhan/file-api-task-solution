@@ -54,4 +54,10 @@ class FileUploadController(
             throw NotFoundException(e.message!!)
         }
     }
+
+    @DeleteMapping("/file/{token}")
+    fun deleteFile(@PathVariable token: String): ResponseEntity<Void> {
+        fileUploadFacade.deleteFile(token)
+        return ResponseEntity(HttpStatus.OK)
+    }
 }

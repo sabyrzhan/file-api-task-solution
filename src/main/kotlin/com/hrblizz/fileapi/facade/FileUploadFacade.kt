@@ -13,6 +13,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -32,7 +33,7 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
     }
 
     fun findAllByIds(ids: List<String>): List<FileEntity> {
-        return fileRepository.findAllById(ids).filter { !it.isExpired() }
+        return fileRepository.findAllByTokenInAndExpireTimeNullOrExpireTimeGreaterThan(ids, Instant.now())
     }
 
     suspend fun getFileData(token: String): FileDataDTO = withContext(Dispatchers.IO){

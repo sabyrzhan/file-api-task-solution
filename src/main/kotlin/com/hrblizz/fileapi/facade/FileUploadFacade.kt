@@ -3,9 +3,10 @@ package com.hrblizz.fileapi.facade
 import com.hrblizz.fileapi.data.entities.FileEntity
 import com.hrblizz.fileapi.data.repository.FileRepository
 import com.hrblizz.fileapi.facade.dto.FileDataDTO
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
@@ -19,7 +20,7 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
     @Value("\${app.upload.base_dir}")
     lateinit var uploadBaseDir: String
 
-    fun uploadFile(entity: FileEntity, fileInputStream: InputStream): FileEntity {
+    suspend fun uploadFile(entity: FileEntity, fileInputStream: InputStream): FileEntity = withContext(Dispatchers.IO) {
         val token = UUID.randomUUID().toString()
         val filePath = storeFile(fileInputStream, token)
         entity.token = token
@@ -27,32 +28,30 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
 
         fileRepository.save(entity)
 
-        return entity
+        entity
     }
 
     fun findAllByIds(ids: List<String>): List<FileEntity> {
         return fileRepository.findAllById(ids).filter { !it.isExpired() }
     }
 
-    fun getFileData(token: String): FileDataDTO {
+    suspend fun getFileData(token: String): FileDataDTO = withContext(Dispatchers.IO){
         val fileMeta = findAllByIds(listOf(token))
         val fileData = File(uploadBaseDir + fileMeta.firstOrNull()?.filePath)
         require(fileMeta.isNotEmpty() && fileData.exists()) { "File with token not found" }
-        return FileDataDTO(fileMeta.first(), FileInputStream(fileData))
+        FileDataDTO(fileMeta.first(), FileInputStream(fileData))
     }
 
     fun deleteFile(token: String) {
         val fileMeta = findAllByIds(listOf(token))
         if (fileMeta.isNotEmpty()) {
             fileRepository.deleteById(fileMeta.first().token)
-            runBlocking {
-                launch(Dispatchers.IO) {
-                    val file = File(uploadBaseDir + fileMeta.first().filePath)
-                    println("deleting the file")
-                    if (file.exists()) {
-                        file.delete()
-                        println("deleted the file")
-                    }
+            CoroutineScope(Dispatchers.IO).launch {
+                val file = File(uploadBaseDir + fileMeta.first().filePath)
+                println("deleting the file")
+                if (file.exists()) {
+                    file.delete()
+                    println("deleted the file")
                 }
             }
         }

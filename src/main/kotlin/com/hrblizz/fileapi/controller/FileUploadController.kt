@@ -18,7 +18,7 @@ class FileUploadController(
 ) {
 
     @PostMapping("/files")
-    fun uploadFile(request: FileUploadRequest): ResponseEntity<Map<String, Any>> {
+    suspend fun uploadFile(request: FileUploadRequest): ResponseEntity<Map<String, Any>> {
         request.validate()
         val metaEntity = fileUploadFacade.uploadFile(request.toFileUploadEntity(), request.content!!.inputStream)
         val response = mapOf(
@@ -36,7 +36,7 @@ class FileUploadController(
     }
 
     @GetMapping("/file/{token}")
-    fun getFileContent(@PathVariable token: String): ResponseEntity<InputStreamResource> {
+    suspend fun getFileContent(@PathVariable token: String): ResponseEntity<InputStreamResource> {
         try {
             val fileData = fileUploadFacade.getFileData(token)
             val headers = HttpHeaders()
@@ -56,7 +56,7 @@ class FileUploadController(
     }
 
     @DeleteMapping("/file/{token}")
-    fun deleteFile(@PathVariable token: String): ResponseEntity<Void> {
+    fun deleteFile(@PathVariable token: String): ResponseEntity<Unit> {
         fileUploadFacade.deleteFile(token)
         return ResponseEntity(HttpStatus.OK)
     }

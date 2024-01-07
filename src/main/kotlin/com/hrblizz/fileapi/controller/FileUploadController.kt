@@ -20,7 +20,10 @@ class FileUploadController(
     @PostMapping("/files")
     suspend fun uploadFile(request: FileUploadRequest): ResponseEntity<Map<String, Any>> {
         request.validate()
-        val metaEntity = fileUploadFacade.uploadFile(request.toFileUploadEntity(), request.content!!.inputStream)
+        val metaEntity = fileUploadFacade.uploadFile(
+            request.toFileUploadEntity(),
+            request.content!!.inputStream
+        )
         val response = mapOf(
             "token" to metaEntity.token,
         )
@@ -41,7 +44,9 @@ class FileUploadController(
             val fileData = fileUploadFacade.getFileData(token)
             val headers = HttpHeaders()
 
-            headers.contentDisposition = ContentDisposition.builder("attachment").filename(fileData.fileMeta.filename).build()
+            headers.contentDisposition = ContentDisposition
+                .builder("attachment")
+                .filename(fileData.fileMeta.filename).build()
             headers.contentLength = fileData.fileMeta.size.toLong()
 
             headers.add("X-Filename", fileData.fileMeta.filename)

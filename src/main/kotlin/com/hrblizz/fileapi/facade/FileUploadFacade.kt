@@ -21,7 +21,8 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
     @Value("\${app.upload.base_dir}")
     lateinit var uploadBaseDir: String
 
-    suspend fun uploadFile(entity: FileEntity, fileInputStream: InputStream): FileEntity = withContext(Dispatchers.IO) {
+    suspend fun uploadFile(entity: FileEntity, fileInputStream: InputStream):
+            FileEntity = withContext(Dispatchers.IO) {
         val token = UUID.randomUUID().toString()
         val filePath = storeFile(fileInputStream, token)
         entity.token = token
@@ -36,7 +37,7 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
         return fileRepository.findAllByTokenInAndExpireTimeNullOrExpireTimeGreaterThan(ids, Instant.now())
     }
 
-    suspend fun getFileData(token: String): FileDataDTO = withContext(Dispatchers.IO){
+    suspend fun getFileData(token: String): FileDataDTO = withContext(Dispatchers.IO) {
         val fileMeta = findAllByIds(listOf(token))
         val fileData = File(uploadBaseDir + fileMeta.firstOrNull()?.filePath)
         require(fileMeta.isNotEmpty() && fileData.exists()) { "File with token not found" }
@@ -58,8 +59,8 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
         }
     }
 
-    private fun storeFile(fileInputStream: InputStream, filename: String) : String {
-        val fileName = filename.replace("-", "");
+    private fun storeFile(fileInputStream: InputStream, filename: String): String {
+        val fileName = filename.replace("-", "")
 
         val baseDirectory = File(uploadBaseDir)
         var rootDirectory = File("/")
@@ -81,6 +82,6 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
             }
         }
 
-        return rootDirectory.absolutePath + "/" + fileName;
+        return rootDirectory.absolutePath + "/" + fileName
     }
 }

@@ -4,3 +4,4 @@ target/
 files/
 request.http
 variables_local.env
+test_uploads/

@@ -33,21 +33,10 @@ class FileSystemFileManager(
 
         val startTime = System.currentTimeMillis()
         try {
-            val fileName = filename.replace("-", "")
-
-            val baseDirectory = File(uploadBaseDir)
-            var rootDirectory = File("/")
-
-            val subdirectories = fileName.split("").filter { it.isNotEmpty() }
-            var currentDirectory = baseDirectory
-
-            for (subdirectory in subdirectories) {
-                currentDirectory = File(currentDirectory, subdirectory)
-                rootDirectory = File(rootDirectory, subdirectory)
-                currentDirectory.mkdir()
-            }
-
-            val file = File(currentDirectory, fileName)
+            val filePath = createDirPathFromUUID(filename).absolutePath
+            val fullDirPath = newFileForPath(filePath)
+            fullDirPath.mkdirs()
+            val file = File(fullDirPath, filename)
 
             FileOutputStream(file).use { output ->
                 fileInputStream.use { input ->
@@ -55,12 +44,10 @@ class FileSystemFileManager(
                 }
             }
 
-            val result = rootDirectory.absolutePath + "/" + fileName
-
             val totalTime = System.currentTimeMillis() - startTime
             logger.info(LogItem("end: storeFile(fileInputStream={}, filename=$filename): Total time taken to save the file: $totalTime ms"))
 
-            return result
+            return "$filePath/$filename"
         } catch (e: Exception) {
             logger.error(LogItem("Error while saving the file=$filename: $e"))
             throw RuntimeException(e)
@@ -82,5 +69,18 @@ class FileSystemFileManager(
     }
 
     private fun newFileForPath(filePath: String?): File = File(uploadBaseDir + filePath)
+
+    fun createDirPathFromUUID(uuidFileName: String): File {
+        val fileName = uuidFileName.replace("-", "")
+
+        val subdirectories = fileName.split("").filter { it.isNotEmpty() }
+        var currentDirectory = File("/")
+
+        for (subdirectory in subdirectories) {
+            currentDirectory = File(currentDirectory, subdirectory)
+        }
+
+        return File(currentDirectory.toURI())
+    }
 }
 

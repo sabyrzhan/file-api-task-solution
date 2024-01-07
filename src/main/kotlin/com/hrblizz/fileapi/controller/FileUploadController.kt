@@ -68,7 +68,11 @@ class FileUploadController(
 
             logger.info(LogItem("end: getFileContent()"))
 
-            return org.springframework.http.ResponseEntity(InputStreamResource(fileData.fileData), HttpStatus.OK)
+            return org.springframework.http.ResponseEntity(
+                InputStreamResource(fileData.fileData),
+                headers,
+                HttpStatus.OK
+            )
         } catch (e: IllegalArgumentException) {
             logger.error(LogItem("Error while reading the file: ${e.message}"))
             throw NotFoundException("File not found for specified token")

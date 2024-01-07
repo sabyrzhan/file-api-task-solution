@@ -70,8 +70,8 @@ You can ignore it. I didnt have time to dig into it deeper, the driver complains
    provides IO dispatcher for such case. I used them for store and get file content APIs.
 2. Delete file API is idempotent. It returns always OK even if file not found. But logs the warning messages
    accordingly. File deletion is executed in the background without blocking using IO dispatcher.
-3. Get file content API returns not found error when metadata or file itself not found. Error message with details is
-   logged.
+3. Get file content API returns 404 if either metadata or file itself was not found. Error message with
+   details is logged.
 4. Get file metas API returns empty for invalid or non existing tokens.
 5. For each uploaded file, the chain of subdirectories are created to store the file. Each subdirectory is the name of
    next letter in the UUID filename (exlcuding "-"). For example, for UUID filename `a-b-c`, such parent folders are

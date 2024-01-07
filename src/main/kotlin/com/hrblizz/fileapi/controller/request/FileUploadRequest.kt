@@ -7,12 +7,14 @@ import com.hrblizz.fileapi.data.entities.FileEntity
 import org.springframework.web.multipart.MultipartFile
 import java.time.Instant
 
-data class FileUploadRequest(val name: String?,
-                             val contentType: String?,
-                             val meta: String?,
-                             val source: String?,
-                             val expireTime: Instant?,
-                             val content: MultipartFile?) {
+data class FileUploadRequest(
+    val name: String?,
+    val contentType: String?,
+    val meta: String?,
+    val source: String?,
+    val expireTime: Instant?,
+    val content: MultipartFile?
+) {
     fun validate() {
         if (name.isNullOrBlank()) {
             throw BadRequestException("Name is blank")
@@ -50,9 +52,9 @@ data class FileUploadRequest(val name: String?,
         return entity
     }
 
-    private fun metaToMap(): Map<String,Any>? {
+    private fun metaToMap(): Map<String, Any>? {
         try {
-            val result = ObjectMapper().readValue(meta, object: TypeReference<Map<String,Any>>(){})
+            val result = ObjectMapper().readValue(meta, object : TypeReference<Map<String, Any>>() {})
             if (result.isEmpty()) {
                 return null
             }

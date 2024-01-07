@@ -3,6 +3,8 @@ package com.hrblizz.fileapi.facade
 import com.hrblizz.fileapi.data.entities.FileEntity
 import com.hrblizz.fileapi.data.repository.FileRepository
 import com.hrblizz.fileapi.facade.dto.FileDataDTO
+import com.hrblizz.fileapi.library.log.LogItem
+import com.hrblizz.fileapi.library.log.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -17,7 +19,11 @@ import java.time.Instant
 import java.util.*
 
 @Service
-class FileUploadFacade(private val fileRepository: FileRepository) {
+class FileUploadFacade(
+    private val fileRepository: FileRepository,
+    private val logger: Logger
+) {
+
     @Value("\${app.upload.base_dir}")
     lateinit var uploadBaseDir: String
 
@@ -49,39 +55,60 @@ class FileUploadFacade(private val fileRepository: FileRepository) {
         if (fileMeta.isNotEmpty()) {
             fileRepository.deleteById(fileMeta.first().token)
             CoroutineScope(Dispatchers.IO).launch {
-                val file = File(uploadBaseDir + fileMeta.first().filePath)
-                println("deleting the file")
-                if (file.exists()) {
-                    file.delete()
-                    println("deleted the file")
+                try {
+                    val file = File(uploadBaseDir + fileMeta.first().filePath)
+                    logger.info(LogItem("Deleted fileMeta for token: $token. Now deleting file..."))
+                    if (file.exists()) {
+                        file.delete()
+                        logger.info(LogItem("Deleted the file for token: $token"))
+                    } else {
+                        logger.warning(LogItem("No file found to delete for token $token"))
+                    }
+                } catch (e: Exception) {
+                    logger.error(LogItem("Error while deleting the file for token=$token: $e"))
                 }
             }
+        } else {
+            logger.warning(LogItem("No fileMeta found to delete for token $token"))
         }
     }
 
     private fun storeFile(fileInputStream: InputStream, filename: String): String {
-        val fileName = filename.replace("-", "")
+        logger.info(LogItem("start: storeFile(fileInputStream={}, filename=$filename)"))
 
-        val baseDirectory = File(uploadBaseDir)
-        var rootDirectory = File("/")
+        val startTime = System.currentTimeMillis()
+        try {
+            val fileName = filename.replace("-", "")
 
-        val subdirectories = fileName.split("").filter { it.isNotEmpty() }
-        var currentDirectory = baseDirectory
+            val baseDirectory = File(uploadBaseDir)
+            var rootDirectory = File("/")
 
-        for (subdirectory in subdirectories) {
-            currentDirectory = File(currentDirectory, subdirectory)
-            rootDirectory = File(rootDirectory, subdirectory)
-            currentDirectory.mkdir()
-        }
+            val subdirectories = fileName.split("").filter { it.isNotEmpty() }
+            var currentDirectory = baseDirectory
 
-        val file = File(currentDirectory, fileName)
-
-        FileOutputStream(file).use { output ->
-            fileInputStream.use { input ->
-                input.copyTo(output)
+            for (subdirectory in subdirectories) {
+                currentDirectory = File(currentDirectory, subdirectory)
+                rootDirectory = File(rootDirectory, subdirectory)
+                currentDirectory.mkdir()
             }
-        }
 
-        return rootDirectory.absolutePath + "/" + fileName
+            val file = File(currentDirectory, fileName)
+
+            FileOutputStream(file).use { output ->
+                fileInputStream.use { input ->
+                    input.copyTo(output)
+                }
+            }
+
+            val result = rootDirectory.absolutePath + "/" + fileName
+
+            val totalTime = System.currentTimeMillis() - startTime
+            logger.info(LogItem("end: storeFile(fileInputStream={}, filename=$filename): Total time taken to save the file: $totalTime ms"))
+
+            return result
+        } catch (e: Exception) {
+            logger.error(LogItem("Error while saving the file=$filename: $e"))
+            throw RuntimeException(e)
+        }
     }
 }

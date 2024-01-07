@@ -39,7 +39,7 @@ class FileUploadFacade(
 
     suspend fun getFileData(token: String): FileDataDTO = withContext(Dispatchers.IO) {
         val fileMeta = findAllByIds(listOf(token))
-        require(fileMeta.isNotEmpty()) { "FileMeta with token not found" }
+        require(fileMeta.isNotEmpty()) { "FileMeta with token=$token not found" }
         FileDataDTO(fileMeta.first(), fileManager.readFile(fileMeta.firstOrNull()?.filePath))
     }
 

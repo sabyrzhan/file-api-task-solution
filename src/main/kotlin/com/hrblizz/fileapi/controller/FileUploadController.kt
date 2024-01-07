@@ -33,7 +33,7 @@ class FileUploadController(
 
         logger.info(LogItem("end: uploadFile()"))
 
-        return ResponseEntity(response, HttpStatus.OK)
+        return ResponseEntity(response, HttpStatus.CREATED)
     }
 
     @PostMapping("/files/metas")

@@ -42,7 +42,9 @@ Produces fat-jar at `target/ROOT.jar`
 3. by specifying the correct path to `variables.env` run in shell:
 
 ```shell
-export $(cat variables_local.env | xargs) && java -jar ROOT.jar
+./do.sh (runs with mvn)
+or
+export $(cat variables.env | xargs) && java -jar target/ROOT.jar
 ```
 
 ### Running in JetBrains IDEA

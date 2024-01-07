@@ -62,7 +62,7 @@ mvn clean test
 Test creates `test_uploades` folder in the current directory to store uploaded test files.
 
 After test completes, `mongodb` client throws `Prematurely reached end of stream` exception. It is not app error.
-You can ignore it.
+You can ignore it. I didnt have time to dig into it deeper, the driver complains to shutdown after test.
 
 ## Implementation notes
 

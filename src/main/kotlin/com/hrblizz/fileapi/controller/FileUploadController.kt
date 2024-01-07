@@ -13,7 +13,6 @@ import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import javax.servlet.http.HttpServletResponse
 
 @RestController
 class FileUploadController(
@@ -48,8 +47,7 @@ class FileUploadController(
 
     @GetMapping("/file/{token}")
     suspend fun getFileContent(
-        @PathVariable token: String,
-        servletResponse: HttpServletResponse
+        @PathVariable token: String
     ): org.springframework.http.ResponseEntity<InputStreamResource> {
         logger.info(LogItem("start: getFileContent(token)"))
         try {

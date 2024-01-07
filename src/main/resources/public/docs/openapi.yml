@@ -2,6 +2,109 @@ openapi: 3.0.0
 info:
   version: '1.0.0'
   title: File API
+servers:
+  - url: http://localhost:6011
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    tokenResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Map containing token
+          properties:
+            token:
+              type: string
+              description: The token of the file
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Error message
+              code:
+                type: integer
+                description: Placeholder for error code
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
+    filesMetaResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Map containing files
+          properties:
+            files:
+              type: object
+              properties:
+                token-1:
+                  type: object
+                  properties:
+                    token:
+                      type: string
+                      description: File token
+                    filename:
+                      type: string
+                      description: Name of the file
+                    size:
+                      type: integer
+                      format: int64
+                      description: Size of the file in bytes
+                    contentType:
+                      type: string
+                      description: Content type of the file
+                    createTime:
+                      type: string
+                      format: date-time
+                      description: Timestamp of file creation in UTC
+                    meta:
+                      type: object
+                      description: meta information as key-value that passed when uploaded
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Error message
+              code:
+                type: integer
+                description: Placeholder for error code
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
+    errorResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Result data as map (tokens, files etc)
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Error message
+              code:
+                type: integer
+                description: Placeholder for error code
+        status:
+          type: integer
+          format: int32
+          description: HTTP status code
 
 paths:
   /status:
@@ -11,6 +114,161 @@ paths:
       responses:
         '200':
           description: It's a response.
+  /files:
+    post:
+      summary: Upload file
+      description: Uploads file with meta parameters. Returns token.
+      security:
+        - basicAuth: [ ]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  format: binary
+                  description: The file to upload
+                name:
+                  type: string
+                  description: Name of the file
+                contentType:
+                  type: string
+                  description: Content type (e.g. application/json, text/plain etc)
+                meta:
+                  type: string
+                  description: Meta file as JSON
+                source:
+                  type: string
+                  description: Source information for the file
+                expireTime:
+                  type: string
+                  description: Expire time as UTC
+              required:
+                - name
+                - contentType
+                - meta
+                - source
+                - content
+      responses:
+        '201':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenResponse'
+        '400':
+          description: When required parameters were not passed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+
+  /files/metas:
+    post:
+      summary: Files metas
+      description: Returns meta information of the file by token.
+      security:
+        - basicAuth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tokens:
+                  type: array
+                  items:
+                    type: string
+                  description: Array of file tokens, you want to get metas for
+              required:
+                - tokens
+      responses:
+        '200':
+          description: Returns map of meta information as key-value, where key is token and value is the meta object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/filesMetaResponse'
+        '400':
+          description: When required parameters were not passed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+  /file/{token}:
+    get:
+      summary: Download file
+      description: Download a file by token and return custom headers.
+      security:
+        - basicAuth: [ ]
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Token to identify the file
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File downloaded successfully
+          headers:
+            X-Filename:
+              schema:
+                type: string
+                description: Name of the downloaded file
+            X-Filesize:
+              schema:
+                type: integer
+                format: int64
+                description: Size of the downloaded file in bytes
+            X-CreateTime:
+              schema:
+                type: string
+                format: date-time
+                description: Timestamp of file creation in UTC
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: Binary content of the file
+        '404':
+          description: File not found if meta or file itself not found on server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+        '503':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
+    delete:
+      summary: Delete file
+      description: |
+        Delete a file by token. The API is idempotent, so it will respond 200 even though file was already
+        deleted or not found. Returns 200 with empty body.
+      security:
+        - basicAuth: [ ]
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Token to identify the file
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File deleted successfully
+        '503':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/errorResponse'
 
 security:
-  - basicAuth: []
+  - basicAuth: [ ]

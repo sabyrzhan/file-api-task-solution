@@ -19,7 +19,6 @@ class FileUploadController(
     private val fileUploadFacade: FileUploadFacade,
     private val logger: Logger
 ) {
-
     @PostMapping("/files")
     suspend fun uploadFile(request: FileUploadRequest): ResponseEntity<Map<String, Any>> {
         logger.info(LogItem("start: uploadFile(request=$request)"))

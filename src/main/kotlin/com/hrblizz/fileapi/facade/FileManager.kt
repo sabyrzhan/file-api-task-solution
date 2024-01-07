@@ -9,3 +9,4 @@ interface FileManager {
 
     fun deleteFile(filePath: String?)
 }
+

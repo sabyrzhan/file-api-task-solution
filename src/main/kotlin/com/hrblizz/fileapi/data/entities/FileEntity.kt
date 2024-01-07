@@ -16,3 +16,4 @@ class FileEntity {
     lateinit var source: String
     lateinit var filePath: String
 }
+

@@ -18,3 +18,4 @@ class FileMetaResponse(@JsonIgnore private val metaList: List<FileEntity>) {
         .map { FileSingleMetaResponse(it) }
         .associateBy { it.token }
 }
+

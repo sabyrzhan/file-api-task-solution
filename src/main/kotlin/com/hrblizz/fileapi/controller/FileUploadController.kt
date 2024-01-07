@@ -7,12 +7,13 @@ import com.hrblizz.fileapi.controller.response.FileMetaResponse
 import com.hrblizz.fileapi.facade.FileUploadFacade
 import com.hrblizz.fileapi.library.log.LogItem
 import com.hrblizz.fileapi.library.log.Logger
+import com.hrblizz.fileapi.rest.ResponseEntity
 import org.springframework.core.io.InputStreamResource
 import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import javax.servlet.http.HttpServletResponse
 
 @RestController
 class FileUploadController(
@@ -33,7 +34,7 @@ class FileUploadController(
 
         logger.info(LogItem("end: uploadFile()"))
 
-        return ResponseEntity(response, HttpStatus.CREATED)
+        return ResponseEntity(response, HttpStatus.CREATED.value())
     }
 
     @PostMapping("/files/metas")
@@ -42,11 +43,14 @@ class FileUploadController(
         request.validate()
         val fileEntities = fileUploadFacade.findAllByIds(request.tokens!!.toList())
         logger.info(LogItem("end: getFilesMetas(fileEntities.size=${fileEntities.size})"))
-        return ResponseEntity(FileMetaResponse(fileEntities), HttpStatus.OK)
+        return ResponseEntity(FileMetaResponse(fileEntities), HttpStatus.OK.value())
     }
 
     @GetMapping("/file/{token}")
-    suspend fun getFileContent(@PathVariable token: String): ResponseEntity<InputStreamResource> {
+    suspend fun getFileContent(
+        @PathVariable token: String,
+        servletResponse: HttpServletResponse
+    ): org.springframework.http.ResponseEntity<InputStreamResource> {
         logger.info(LogItem("start: getFileContent(token)"))
         try {
             val fileData = fileUploadFacade.getFileData(token)
@@ -64,7 +68,7 @@ class FileUploadController(
 
             logger.info(LogItem("end: getFileContent()"))
 
-            return ResponseEntity(InputStreamResource(fileData.fileData), headers, HttpStatus.OK)
+            return org.springframework.http.ResponseEntity(InputStreamResource(fileData.fileData), HttpStatus.OK)
         } catch (e: IllegalArgumentException) {
             logger.error(LogItem("Error while reading the file: ${e.message}"))
             throw NotFoundException("File not found for specified token")
@@ -76,6 +80,7 @@ class FileUploadController(
         logger.info(LogItem("start: deleteFile(token)"))
         fileUploadFacade.deleteFile(token)
         logger.info(LogItem("end: deleteFile(token)"))
-        return ResponseEntity(HttpStatus.OK)
+        return ResponseEntity(HttpStatus.OK.value())
     }
 }
+

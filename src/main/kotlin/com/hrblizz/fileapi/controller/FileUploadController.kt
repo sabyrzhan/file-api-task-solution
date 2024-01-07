@@ -67,8 +67,8 @@ class FileUploadController(
 
             return ResponseEntity(InputStreamResource(fileData.fileData), headers, HttpStatus.OK)
         } catch (e: IllegalArgumentException) {
-            logger.error(LogItem("Either fileMeta or file itself not found: ${e.message}"))
-            throw NotFoundException(e.message!!)
+            logger.error(LogItem("Error while reading the file: ${e.message}"))
+            throw NotFoundException("File not found for specified token")
         }
     }
 

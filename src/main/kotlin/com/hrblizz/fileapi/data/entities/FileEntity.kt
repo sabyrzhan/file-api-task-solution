@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit
 
 class FileEntity {
     @Id
-    lateinit var token : String
+    lateinit var token: String
     lateinit var filename: String
     lateinit var size: Number
     lateinit var contentType: String
@@ -15,8 +15,4 @@ class FileEntity {
     lateinit var meta: Map<String, Any>
     lateinit var source: String
     lateinit var filePath: String
-
-    fun isExpired(): Boolean {
-        return expireTime != null && expireTime!!.isBefore(Instant.now())
-    }
 }

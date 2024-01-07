@@ -15,6 +15,6 @@ class FileSingleMetaResponse(@JsonIgnore private val fileUploadEntity: FileEntit
 
 class FileMetaResponse(@JsonIgnore private val metaList: List<FileEntity>) {
     val files: Map<String, FileSingleMetaResponse> = metaList
-                                                        .map { FileSingleMetaResponse(it) }
-                                                        .associateBy { it.token }
+        .map { FileSingleMetaResponse(it) }
+        .associateBy { it.token }
 }

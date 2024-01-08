@@ -75,8 +75,8 @@ You can ignore it. I didnt have time to dig into it deeper, the driver complains
 4. Get file metas API returns empty for invalid or non existing tokens.
 5. For each uploaded file, the chain of subdirectories are created to store the file. Each subdirectory is the name of
    next letter in the UUID filename (exlcuding "-"). For example, for UUID filename `a-b-c`, such parent folders are
-   created: `/a/b/c/` This is due to the fact, that storing a lot of files in single folder on filesystem
-   can beat the system performance. Even tough we could create since there would not be filename collisions.
-6. For managing file I created abstract `FileManager` interface. Since task requirement is store file on filesystem,
-   I implemented `FileSystemFileManager`. However, if S3 or other NAS like storage are needed, we could implement them
-   by using `FileManager` and swap with `Qualifier`.
+   created: `/a/b/c/` This is due to the fact, that storing a lot of files in a single folder on a filesystem
+   can beat the system performance. Even though we could create them since there would not be any filename collisions.
+6. For managing file I created abstract `FileManager` interface. Since task requirement is to store file on filesystem,
+   I implemented `FileSystemFileManager`. However, if S3 or other NAS like storages are needed, we could implement
+   them by using `FileManager` and swap with `Qualifier`.
